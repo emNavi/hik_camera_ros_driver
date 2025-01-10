@@ -1,15 +1,15 @@
-camera_name: camera
+camera_name: hik_camera
 Camera:
-  # 相机序列号(可在MVS软件内查看)
-  serial_number: 00G16304066
+  # 相机序列号(可在MVS软件内查看) # 00G16304066
+  serial_number: 2BDFA5265004
   # 相机内参文件 package://my_cameras/calibrations/${NAME}.yaml
   cam_info_url: package://hik_camera_driver/config/ost.yaml
   # 帧率
-  frame_rate: 10.0
+  frame_rate: 30.0
 
   # ROI区域设置
-  Height: 1080
-  Width: 1920
+  Height: 2048
+  Width: 3072
   OffsetX: 0
   OffsetY: 0
 

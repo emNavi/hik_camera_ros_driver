@@ -12,7 +12,7 @@ namespace HIKCAMERA
     {
         this->private_nh = private_nh;
         std::string cam_info_url;
-        private_nh.param<std::string>("camera_name", camera_name, "camera");
+        private_nh.param<std::string>("camera_name", camera_name, "hik_camera");
         private_nh.param<std::string>("Camera/cam_info_url", cam_info_url, "");
         image_transport::ImageTransport it(nh);
         cinfo_.reset(new camera_info_manager::CameraInfoManager(nh, camera_name, cam_info_url));
