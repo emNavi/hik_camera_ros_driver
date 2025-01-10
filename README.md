@@ -4,10 +4,17 @@
 
 - 支持参数化配置，支持修改帧率、ROI、触发模式、曝光、增益、数字偏移等参数。
 - 支持外部触发时无法调用相机自动曝光，驱动程序根据亮度控制曝光时间。
-- 本例默认包含`arm平台`的库，如需其他平台支持，可[手动下载官网的静态库](https://www.hikrobotics.com/cn/machinevision/service/download/?module=0)并替换到 `libs` 目录中。
+- 本例默认支持`aarch64 和 x86_64`的库，如需其他平台支持，可[手动下载官网的静态库](https://www.hikrobotics.com/cn/machinevision/service/download/?module=0)并替换到 `libs` 目录中。
 - `ost.yaml` 为相机内参，可通过标定获得。
 
+
 ## 安装
+
+安装 MVS 驱动：（选用Linux V3.0.1）：
+https://www.hikrobotics.com/cn/machinevision/service/download/?module=0
+
+点击下载后解压，根据系统架构使用dpkg选装不同的deb包
+Jetson 可装 aarch64
 
 ```bash
 
@@ -35,11 +42,11 @@ Camera:
   # 相机内参文件 package://my_cameras/calibrations/${NAME}.yaml
   cam_info_url: package://hik_camera_driver/config/ost.yaml
   # 帧率
-  frame_rate: 10.0
+  frame_rate: 60.0
 
   # ROI区域设置
-  Height: 1080
-  Width: 1920
+  Height: 2048
+  Width: 3072
   OffsetX: 0
   OffsetY: 0
 
