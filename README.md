@@ -19,8 +19,8 @@ Jetson 可装 aarch64
 ```bash
 
 mkdir -p ~/hikrobotics_camera_ws/src
-git clone https://github.com/emNavi/hik-camera-ros-driver.git ~/hikrobotics_camera_ws/src/hik_camera_driver
 cd ~/hikrobotics_camera_ws
+git clone https://github.com/emNavi/hik-camera-ros-driver.git
 catkin_make
 ```
 
