@@ -1,7 +1,7 @@
 camera_name: hik_camera
 Camera:
   # 相机序列号(可在MVS软件内查看) # 00G16304066
-  serial_number: 2BDFA5265004
+  serial_number: DA5265004
   # 相机内参文件 package://my_cameras/calibrations/${NAME}.yaml
   cam_info_url: package://hik_camera_driver/config/ost.yaml
   # 帧率
