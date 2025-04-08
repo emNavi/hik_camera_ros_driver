@@ -1,5 +1,6 @@
 #include <hik_camera_driver/camera.h>
 
+
 namespace HIKCAMERA
 {
     sensor_msgs::ImagePtr frame; // 临时存放当前帧
@@ -7,16 +8,24 @@ namespace HIKCAMERA
     bool frame_empty = true;     // 用于标志是否有新帧未发布
     float exposure_time_set;     // 用于存放下次设置的曝光时间
     int exposure_auto;           // 是否自动曝光
+    ros::Time sync_time;
+
+    void Hik_camera_base::syncTimeCallback(const std_msgs::Time::ConstPtr& msg)
+    {
+        ROS_INFO("Received Sync time: %f seconds", msg->data.toSec());
+        sync_time = msg->data;
+    }
 
     Hik_camera_base::Hik_camera_base(ros::NodeHandle &nh, ros::NodeHandle &private_nh)
     {
         this->private_nh = private_nh;
         std::string cam_info_url;
-        private_nh.param<std::string>("camera_name", camera_name, "hik_camera");
         private_nh.param<std::string>("Camera/cam_info_url", cam_info_url, "");
         image_transport::ImageTransport it(nh);
+        private_nh.param<std::string>("camera_name", camera_name, "");
         cinfo_.reset(new camera_info_manager::CameraInfoManager(nh, camera_name, cam_info_url));
         camera_pub = it.advertiseCamera(camera_name + "/image", 1);
+        sync_timestamp_sub = private_nh.subscribe("/time_sync/timestamp", 1, &Hik_camera_base::syncTimeCallback, this);
         // exposure_sub = nh.subscribe<std_msgs::Float32>(camera_name + "/set_exposure", 10, boost::bind(&Hik_camera_base::exposure_callback, this, _1));
     }
 
@@ -42,6 +51,8 @@ namespace HIKCAMERA
         int width;
         int offset_x;
         int offset_y;
+        int decimationHorizontal;
+        int decimationVertical;
         private_nh.param<float>("Camera/frame_rate", frame_rate, 10.0);
         private_nh.param<bool>("Camera/Trigger", trigger_mode, false);
         private_nh.param<int>("Camera/Tigger_line", trigger_line, 2);
@@ -64,6 +75,8 @@ namespace HIKCAMERA
         private_nh.param<int>("Camera/Width", width, 1920);
         private_nh.param<int>("Camera/OffsetX", offset_x, 0);
         private_nh.param<int>("Camera/OffsetY", offset_y, 0);
+        private_nh.param<int>("Camera/DecimationHorizontal", decimationHorizontal, 1);
+        private_nh.param<int>("Camera/DecimationVertical", decimationVertical, 1);
 
         exposure_time_set = Exposure_time;
         exposure_auto = Exposure;
@@ -118,6 +131,9 @@ namespace HIKCAMERA
         setIntValue("Height", height);
         setIntValue("Width", width);
         
+        // 设置降采样
+        setEnumValue("DecimationHorizontal", static_cast<unsigned int>(decimationHorizontal));
+        setEnumValue("DecimationVertical", static_cast<unsigned int>(decimationVertical));
 
         // 设置帧率
         setFrameRate(frame_rate);
@@ -163,8 +179,9 @@ namespace HIKCAMERA
             return false;
         }
         // 设置白平衡
-        setEnumValue("BalanceWhiteAuto", MV_BALANCEWHITE_AUTO_CONTINUOUS);
-        ROS_INFO_STREAM("BalanceWhiteAuto set to Continuous");
+        // setEnumValue("BalanceWhiteAuto", MV_BALANCEWHITE_AUTO_CONTINUOUS);
+        // ROS_INFO_STREAM("BalanceWhiteAuto set to Continuous");
+
         // 设置图像像素格式，不同型号的相机，支持的像素格式有差异，以实际的为准
         // 0x01080001:Mono8
         // 0x01100003:Mono10
@@ -182,10 +199,11 @@ namespace HIKCAMERA
         // 0x0110000e:BayerGB10
         // 0x01100012:BayerGB12
         // 0x010C002C:BayerGB12Packed
-        setEnumValue("PixelFormat", PixelType_Gvsp_RGB8_Packed);
+        setEnumValue("PixelFormat", PixelType_Gvsp_Mono12);
+        // setEnumValue("PixelFormat", PixelType_Gvsp_RGB8_Packed);
         // 设置亮度
-        setIntValue("Brightness", brightneess);
-        ROS_INFO_STREAM("Brightness set to " << brightneess);
+        // setIntValue("Brightness", brightneess);
+        // ROS_INFO_STREAM("Brightness set to " << brightneess);
         // 设置数字偏移
         if (Digital_shift_mode)
         {
@@ -520,7 +538,7 @@ namespace HIKCAMERA
             nRet = MV_CC_GetOneFrameTimeout(p_handle, pData, nDataSize, &stImageInfo, 50);
             if (nRet == MV_OK)
             {
-                ros::Time rcv_time = ros::Time::now();
+                // ros::Time rcv_time = ros::Time::now();
                 // std::string debug_msg;
                 // ROS_INFO_STREAM("GetOneFrame,nFrameNum[" << stImageInfo.nFrameNum << "],FrameTime:" + std::to_string(rcv_time.toSec()));
                 stConvertParam.nWidth = stImageInfo.nWidth;
@@ -536,7 +554,8 @@ namespace HIKCAMERA
                 srcImage = cv::Mat(stImageInfo.nHeight, stImageInfo.nWidth, CV_8UC3, m_pBufForSaveImage);
                 sensor_msgs::ImagePtr msg =
                     cv_bridge::CvImage(std_msgs::Header(), "bgr8", srcImage).toImageMsg();
-                msg->header.stamp = rcv_time;
+                // TODO(Derkai): 使用同步后的时间戳
+                msg->header.stamp = sync_time;
                 pthread_mutex_lock(&mutex);
                 frame_empty = false;
                 frame = msg;

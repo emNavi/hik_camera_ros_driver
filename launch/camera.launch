@@ -1,5 +1,13 @@
 <launch>
-    <node pkg="hik_camera_driver" name="camera_driver" type="camera_driver" output="screen">
-        <rosparam file="$(find hik_camera_driver)/config/camera.yaml" command="load"/>
+    <node pkg="hik_camera_driver" name="camera_driver_1" type="camera_driver" output="screen">
+        <rosparam file="$(find hik_camera_driver)/config/camera_1.yaml" command="load"/>
     </node>
+
+    <node pkg="hik_camera_driver" name="camera_driver_2" type="camera_driver" output="screen">
+        <rosparam file="$(find hik_camera_driver)/config/camera_2.yaml" command="load"/>
+    </node>
+
+    <!-- <node pkg="emnv_time_sync" name="emnv_time_sync" type="sync_cam.py" output="screen">
+    </node> -->
+
 </launch>

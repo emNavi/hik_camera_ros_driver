@@ -11,6 +11,7 @@
 #include <image_transport/image_transport.h>
 #include <cv_bridge/cv_bridge.h>
 #include <std_msgs/Float32.h>
+#include <std_msgs/Time.h>
 
 namespace HIKCAMERA
 {
@@ -47,6 +48,7 @@ namespace HIKCAMERA
 
         bool changeExposureTime(float value);
         void exposure_callback(const std_msgs::Float32ConstPtr msg);
+        void syncTimeCallback(const std_msgs::Time::ConstPtr& msg);
 
     public:
         int nRet = -1;
@@ -58,10 +60,12 @@ namespace HIKCAMERA
         boost::shared_ptr<camera_info_manager::CameraInfoManager> cinfo_;
         image_transport::CameraPublisher camera_pub;
         ros::Subscriber exposure_sub;
+        ros::Subscriber sync_timestamp_sub;
         bool exposure_control = false;             // 程序控制曝光（当外部触发,无法使用自动曝光时启用）
         float exposure_time_up, exposure_time_low; // 曝光时间上下限
         float scale = 1.03;                        // 曝光时间变化率
         float light_set;                           // 控制曝光指定亮度
+        // ros::Time sync_time;                        // 当前同步的时间戳
     };
 
 } // namespace HIKCAMERA

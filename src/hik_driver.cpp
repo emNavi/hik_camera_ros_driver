@@ -91,8 +91,7 @@ int main(int argc, char **argv)
     }
 
     std::string serial_number;
-    private_nh.param<std::string>("Camera/serial_number", serial_number, "00DA1999130");
-
+    private_nh.param<std::string>("Camera/serial_number", serial_number, "");
     HIKCAMERA::Hik_camera_base camera(nh, private_nh);
     if (serial_number == "")
     {
