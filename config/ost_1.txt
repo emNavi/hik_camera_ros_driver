@@ -4,10 +4,10 @@
 [image]
 
 width
-768
+720
 
 height
-512
+540
 
 [hik_camera_1]
 

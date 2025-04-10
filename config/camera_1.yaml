@@ -8,14 +8,14 @@ Camera:
   frame_rate: 20.0
 
   # ROI区域设置
-  Height: 512
-  Width: 768
+  Height: 1080
+  Width: 1440
   OffsetX: 0
   OffsetY: 0
 
   # 下采样设置（1 为不开启下采样， 2 4 分别对2倍下采样、4倍下采样。开启下采样胡，对应的ROI区域也需要进行同步缩小，具体值参考MVS结果）
-  DecimationHorizontal: 4
-  DecimationVertical: 4
+  DecimationHorizontal: 2
+  DecimationVertical: 2
 
   # 触发模式
   Trigger: false
@@ -55,7 +55,7 @@ Camera:
   # 0:Off
   # 1:Once
   # 2:Continuous
-  Gain_mode: 0
+  Gain_mode: 2
   # 增益值 ≥0.0 ，单位 dB
   Gain_value: 1.0
 
