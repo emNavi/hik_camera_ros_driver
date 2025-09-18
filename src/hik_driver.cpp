@@ -144,10 +144,10 @@ int main(int argc, char **argv)
             camera.getFloatValue("Gain", gain);
             camera.getFloatValue("ResultingFrameRate", FrameRate);
             camera.getFloatValue("DigitalShift", DigitalShift);
-            ROS_INFO_STREAM("-----------------------");
-            ROS_INFO_STREAM("ExposureTime: " << exposure_time);
-            ROS_INFO_STREAM("Gain        : " << gain);
-            ROS_INFO_STREAM("DigitalShift: " << DigitalShift);
+            // ROS_INFO_STREAM("-----------------------");
+            // ROS_INFO_STREAM("ExposureTime: " << exposure_time);
+            // ROS_INFO_STREAM("Gain        : " << gain);
+            // ROS_INFO_STREAM("DigitalShift: " << DigitalShift);
             i = 0;
         }
 #endif

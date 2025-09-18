@@ -4,6 +4,7 @@
 #include <vector>
 #include <pthread.h>
 #include <ros/ros.h>
+#include <opencv2/core/core.hpp> 
 #include <opencv2/opencv.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <sensor_msgs/Image.h>
@@ -12,10 +13,11 @@
 #include <cv_bridge/cv_bridge.h>
 #include <std_msgs/Float32.h>
 #include <std_msgs/Time.h>
+#include <dynamic_reconfigure/server.h>
+#include <hik_camera_driver/HikcameraControlConfig.h>
 
 namespace HIKCAMERA
 {
-    // cv::Mat frame;            // 临时存放当前帧
     extern sensor_msgs::ImagePtr frame; // 临时存放当前帧
     extern pthread_mutex_t mutex;       // 存放帧的锁
     extern bool frame_empty;            // 用于标志是否有新帧未发布
@@ -47,7 +49,8 @@ namespace HIKCAMERA
         static void *WorkThread(void *p_handle);
 
         bool changeExposureTime(float value);
-        void exposure_callback(const std_msgs::Float32ConstPtr msg);
+        bool changeGain(float value);
+        void param_callback(hik_camera_driver::HikcameraControlConfig &config, uint32_t level);
         void syncTimeCallback(const std_msgs::Time::ConstPtr& msg);
 
     public:
@@ -65,6 +68,9 @@ namespace HIKCAMERA
         float exposure_time_up, exposure_time_low; // 曝光时间上下限
         float scale = 1.03;                        // 曝光时间变化率
         float light_set;                           // 控制曝光指定亮度
+        dynamic_reconfigure::Server<hik_camera_driver::HikcameraControlConfig> server_;
+        dynamic_reconfigure::Server<hik_camera_driver::HikcameraControlConfig>::CallbackType f_;
+
         // ros::Time sync_time;                        // 当前同步的时间戳
     };
 

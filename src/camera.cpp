@@ -12,11 +12,11 @@ namespace HIKCAMERA
 
     void Hik_camera_base::syncTimeCallback(const std_msgs::Time::ConstPtr& msg)
     {
-        ROS_INFO("Received Sync time: %f seconds", msg->data.toSec());
+        // ROS_INFO("Received Sync time: %f seconds", msg->data.toSec());
         sync_time = msg->data;
     }
 
-    Hik_camera_base::Hik_camera_base(ros::NodeHandle &nh, ros::NodeHandle &private_nh)
+    Hik_camera_base::Hik_camera_base(ros::NodeHandle &nh, ros::NodeHandle &private_nh) : server_(private_nh)
     {
         this->private_nh = private_nh;
         std::string cam_info_url;
@@ -25,8 +25,11 @@ namespace HIKCAMERA
         private_nh.param<std::string>("camera_name", camera_name, "");
         cinfo_.reset(new camera_info_manager::CameraInfoManager(nh, camera_name, cam_info_url));
         camera_pub = it.advertiseCamera(camera_name + "/image", 1);
-        sync_timestamp_sub = private_nh.subscribe("/time_sync/timestamp", 1, &Hik_camera_base::syncTimeCallback, this);
-        // exposure_sub = nh.subscribe<std_msgs::Float32>(camera_name + "/set_exposure", 10, boost::bind(&Hik_camera_base::exposure_callback, this, _1));
+        sync_timestamp_sub = private_nh.subscribe("/sensor_bridge/timestamp", 1, &Hik_camera_base::syncTimeCallback, this);
+
+        // 绑定参数动态回调
+        f_ = boost::bind(&Hik_camera_base::param_callback, this, _1, _2);
+        server_.setCallback(f_);
     }
 
     bool Hik_camera_base::set_params()
@@ -199,8 +202,8 @@ namespace HIKCAMERA
         // 0x0110000e:BayerGB10
         // 0x01100012:BayerGB12
         // 0x010C002C:BayerGB12Packed
-        setEnumValue("PixelFormat", PixelType_Gvsp_Mono12);
-        // setEnumValue("PixelFormat", PixelType_Gvsp_RGB8_Packed);
+        // setEnumValue("PixelFormat", PixelType_Gvsp_Mono8);
+        setEnumValue("PixelFormat", PixelType_Gvsp_RGB8_Packed);
         // 设置亮度
         // setIntValue("Brightness", brightneess);
         // ROS_INFO_STREAM("Brightness set to " << brightneess);
@@ -491,15 +494,41 @@ namespace HIKCAMERA
         return true;
     }
 
-    void Hik_camera_base::exposure_callback(const std_msgs::Float32ConstPtr msg)
+    bool Hik_camera_base::changeGain(float value)
     {
-        float exposure = msg->data;
-        float get_exposure;
-        getFloatValue("ExposureTime", get_exposure);
-        if (get_exposure != exposure)
+        // 停止取流
+        nRet = MV_CC_StopGrabbing(m_handle);
+        if (MV_OK != nRet)
         {
-            // changeExposureTime(exposure);
-            exposure_time_set = exposure;
+            printf("MV_CC_StopGrabbing fail! nRet [%x]\n", nRet);
+            return false;
+        }
+        // 更改增益
+        setFloatValue("Gain", value);
+        // 开始取流
+        nRet = MV_CC_StartGrabbing(m_handle);
+        if (MV_OK != nRet)
+        {
+            ROS_ERROR("MV_CC_StartGrabbing fail! nRet [%x]\n", nRet);
+            return false;
+        }
+        return true;
+    }
+
+    void Hik_camera_base::param_callback(hik_camera_driver::HikcameraControlConfig &config, uint32_t level){
+        // ROS_INFO("[Hik_camera_base] 参数更新: serial_number=%f",
+        //          config.Gain_value);
+        float get_exposure;
+        float get_gain;
+        getFloatValue("ExposureTime", get_exposure);
+        getFloatValue("Gain", get_gain);
+        if (get_exposure != config.Exposure_time)
+        {
+            changeExposureTime(config.Exposure_time);
+        }
+        if (get_gain != config.Gain_value)
+        {
+            changeGain(config.Gain_value);
         }
     }
 
@@ -526,15 +555,15 @@ namespace HIKCAMERA
         unsigned int nDataSize = stParam.nCurValue;
         while (ros::ok())
         {
-            if (exposure_auto == 0)
-            {
-                // 设置曝光
-                nRet = MV_CC_SetExposureTime(p_handle, exposure_time_set);
-                if (MV_OK != nRet)
-                {
-                    ROS_WARN("Exposure time set failed! nRet [%x]\n", nRet);
-                }
-            }
+            // if (exposure_auto == 0)
+            // {
+            //     // 设置曝光
+            //     nRet = MV_CC_SetExposureTime(p_handle, exposure_time_set);
+            //     if (MV_OK != nRet)
+            //     {
+            //         ROS_WARN("Exposure time set failed! nRet [%x]\n", nRet);
+            //     }
+            // }
             nRet = MV_CC_GetOneFrameTimeout(p_handle, pData, nDataSize, &stImageInfo, 50);
             if (nRet == MV_OK)
             {
@@ -545,15 +574,16 @@ namespace HIKCAMERA
                 stConvertParam.nHeight = stImageInfo.nHeight;
                 stConvertParam.pSrcData = pData;
                 stConvertParam.nSrcDataLen = nDataSize;
-                stConvertParam.enDstPixelType = PixelType_Gvsp_BGR8_Packed;
+                stConvertParam.enDstPixelType = PixelType_Gvsp_RGB8_Packed; // 设置图像格式
+                // stConvertParam.enDstPixelType = PixelType_Gvsp_Mono8; // 设置图像格式
                 stConvertParam.pDstBuffer = m_pBufForSaveImage;
-                stConvertParam.nDstBufferSize = nDataSize * 3;
+                stConvertParam.nDstBufferSize = nDataSize * 3; // 灰度图这里设置为 *1  RGB这里设置为 *3
                 stConvertParam.enSrcPixelType = stImageInfo.enPixelType;
                 MV_CC_ConvertPixelTypeEx(p_handle, &stConvertParam);
                 cv::Mat srcImage;
-                srcImage = cv::Mat(stImageInfo.nHeight, stImageInfo.nWidth, CV_8UC3, m_pBufForSaveImage);
+                srcImage = cv::Mat(stImageInfo.nHeight, stImageInfo.nWidth, CV_8UC3, m_pBufForSaveImage); // 设置图像格式  灰度图这里设置为 CV_8UC1  RGB这里设置为 CV_8UC3
                 sensor_msgs::ImagePtr msg =
-                    cv_bridge::CvImage(std_msgs::Header(), "bgr8", srcImage).toImageMsg();
+                    cv_bridge::CvImage(std_msgs::Header(), "rgb8", srcImage).toImageMsg(); // 设置图像格式（ROS rqt_image_view 仅支持显示 mono8 和 rgb8 ）
                 // TODO(Derkai): 使用同步后的时间戳
                 msg->header.stamp = sync_time;
                 pthread_mutex_lock(&mutex);
