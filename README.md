@@ -1,23 +1,29 @@
 # HIKROBOTICS工业相机ROS非官方驱动
 
-海康机器人工业相机ROS驱动包，包含海康MVS-SDK v3.0.1 静态库，开箱即用，无需安装MVS。
+海康机器人工业相机ROS驱动包，包含海康MVS-SDK v3.0.1 静态库，开箱即用。
 
 - 支持参数化配置，支持修改帧率、ROI、触发模式、曝光、增益、数字偏移等参数。
 - 支持外部触发时无法调用相机自动曝光，驱动程序根据亮度控制曝光时间。
-- 本例默认支持`aarch64 和 x86_64`的库，如需其他平台支持，可[手动下载官网的静态库](https://www.hikrobotics.com/cn/machinevision/service/download/?module=0)并替换到 `libs` 目录中。
-- `ost.yaml` 为相机内参，可通过标定获得。
-
+- 本例默认支持`aarch64 和 x86_64`的库
 
 ## 安装
-
 安装 MVS 驱动：（选用Linux V3.0.1）：
 https://www.hikrobotics.com/cn/machinevision/service/download/?module=0
 
 点击下载后解压，根据系统架构使用dpkg选装不同的deb包
 Jetson 可装 aarch64
+ 
+```
+# 这里因为海康的BUG，篡改了系统的路径，导致很多问题。请针对不同的系统架构，删除对应的包
+sudo rm /opt/MVS/lib/aarch64/libusb-1.0.so.0
+
+# 或者
+sudo rm /opt/MVS/lib/32/libusb-1.0.so.0
+sudo rm /opt/MVS/lib/64/libusb-1.0.so.0
+```
 
 ```bash
-
+# 下载并编译本项目
 mkdir -p ~/hikrobotics_camera_ws/src
 cd ~/hikrobotics_camera_ws
 git clone https://github.com/emNavi/hik-camera-ros-driver.git

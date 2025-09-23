@@ -70,8 +70,6 @@ namespace HIKCAMERA
         float light_set;                           // 控制曝光指定亮度
         dynamic_reconfigure::Server<hik_camera_driver::HikcameraControlConfig> server_;
         dynamic_reconfigure::Server<hik_camera_driver::HikcameraControlConfig>::CallbackType f_;
-
-        // ros::Time sync_time;                        // 当前同步的时间戳
     };
 
 } // namespace HIKCAMERA

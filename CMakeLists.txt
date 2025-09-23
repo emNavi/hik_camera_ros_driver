@@ -12,11 +12,17 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   sensor_msgs
   std_msgs
+  dynamic_reconfigure
 )
 
 find_package(OpenCV REQUIRED)
 
+generate_dynamic_reconfigure_options(
+  config/camera.cfg
+)
+
 catkin_package()
+
 
 include_directories(
   include
@@ -40,16 +46,19 @@ endif()
 
 if(ARCH STREQUAL "aarch64")
     LINK_DIRECTORIES(
-        libs/aarch64
+        /opt/MVS/lib/aarch64
       )
 elseif(ARCH STREQUAL "x86_64")
     LINK_DIRECTORIES(
-        libs/x86_64
+        /opt/MVS/lib/64
       )
 endif()
 
 add_executable(camera_driver src/hik_driver.cpp
                              src/camera.cpp)
+
+add_dependencies(camera_driver ${PROJECT_NAME}_gencfg)
+
 target_link_libraries(camera_driver 
   ${catkin_LIBRARIES}
   ${OpenCV_LIBRARIES}
