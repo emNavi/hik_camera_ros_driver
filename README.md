@@ -27,7 +27,7 @@ sudo rm /opt/MVS/lib/64/libusb-1.0.so.0
 ```bash
 # 下载驱动包并安装
 wget -c https://file.emnavi.tech/common_tools/Hikcamera/MVS-3.0.1_aarch64_20241128.deb
-sudo dpkg -i MVS-3.0.1_x86_64_20241128.deb
+sudo dpkg -i MVS-3.0.1_aarch64_20241128.deb
 
 # 这里因为海康的BUG，篡改了系统的路径，导致很多问题，请删除：
 sudo rm /opt/MVS/lib/aarch64/libusb-1.0.so.0
