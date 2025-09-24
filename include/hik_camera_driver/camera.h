@@ -64,6 +64,7 @@ namespace HIKCAMERA
         image_transport::CameraPublisher camera_pub;
         ros::Subscriber exposure_sub;
         ros::Subscriber sync_timestamp_sub;
+        bool initialized = false;
         bool exposure_control = false;             // 程序控制曝光（当外部触发,无法使用自动曝光时启用）
         float exposure_time_up, exposure_time_low; // 曝光时间上下限
         float scale = 1.03;                        // 曝光时间变化率

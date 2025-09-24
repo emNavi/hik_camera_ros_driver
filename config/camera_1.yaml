@@ -1,9 +1,9 @@
 camera_name: hik_camera_1
 Camera:
   # 相机序列号(可在MVS软件内查看) # 00G16304066
-  serial_number: DA6068208
+  serial_number: DA5627115
   # 相机内参文件 package://my_cameras/calibrations/${NAME}.yaml
-  cam_info_url: package://hik_camera_driver/config/ost_1.yaml
+  cam_info_url: package://hik_camera_driver/config/camera_1_info.yaml
   # 帧率 (软触发时候生效)
   frame_rate: 10.0
 

@@ -30,6 +30,8 @@ namespace HIKCAMERA
         // 绑定参数动态回调
         f_ = boost::bind(&Hik_camera_base::param_callback, this, _1, _2);
         server_.setCallback(f_);
+        // 修改初始化标志位
+        initialized = true;
     }
 
     bool Hik_camera_base::set_params()
@@ -115,8 +117,8 @@ namespace HIKCAMERA
                 {
                     ROS_WARN_STREAM("Not Exist Trigger Action: " << trigger_action);
                 }
-                setFloatValue("TriggerDelay", trigger_delay);
-                ROS_INFO_STREAM("TriggerDelay set to " << trigger_delay << "us.");
+                // setFloatValue("TriggerDelay", trigger_delay);
+                // ROS_INFO_STREAM("TriggerDelay set to " << trigger_delay << "us.");
             }
             else
             {
@@ -516,19 +518,19 @@ namespace HIKCAMERA
     }
 
     void Hik_camera_base::param_callback(hik_camera_driver::HikcameraControlConfig &config, uint32_t level){
-        // ROS_INFO("[Hik_camera_base] 参数更新: serial_number=%f",
-        //          config.Gain_value);
-        float get_exposure;
-        float get_gain;
-        getFloatValue("ExposureTime", get_exposure);
-        getFloatValue("Gain", get_gain);
-        if (get_exposure != config.Exposure_time)
-        {
-            changeExposureTime(config.Exposure_time);
-        }
-        if (get_gain != config.Gain_value)
-        {
-            changeGain(config.Gain_value);
+        if (initialized){
+            float get_exposure;
+            float get_gain;
+            getFloatValue("ExposureTime", get_exposure);
+            getFloatValue("Gain", get_gain);
+            if (get_exposure != config.Exposure_time)
+            {
+                changeExposureTime(config.Exposure_time);
+            }
+            if (get_gain != config.Gain_value)
+            {
+                changeGain(config.Gain_value);
+            }
         }
     }
 

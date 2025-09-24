@@ -1,30 +1,40 @@
-# HIKROBOTICS工业相机ROS非官方驱动
-
-海康机器人工业相机ROS驱动包。
+# HikCamera 工业相机 ROS 包
 
 - 支持参数化配置，支持修改帧率、ROI、触发模式、曝光、增益、数字偏移等参数。
 - 支持外部触发时无法调用相机自动曝光，驱动程序根据亮度控制曝光时间。
 - 本例默认支持`aarch64 和 x86_64`的库。
 - 可通过动态调参工具 dynamic_reconfigure 调节参数（曝光、增益等）
 
-## 安装
-安装 MVS 驱动：（选用Linux V3.0.1）：
-https://www.hikrobotics.com/cn/machinevision/service/download/?module=0
+| 主要话题名                        | 消息类型                      | 备注                         |
+|---------------------------------|------------------------------|------------------------------|
+| `/hik_camera_1/camera_info`     | `sensor_msgs/CameraInfo`     | 海康相机的内参、畸变参数等相机标定信息 |
+| `/hik_camera_1/image`           | `sensor_msgs/Image`          | 海康相机的原始图像流          |
+| `/hik_camera_1/image/compressed`| `sensor_msgs/CompressedImage`| 海康相机的压缩图像流（JPEG） |
 
-点击下载后解压，根据系统架构使用dpkg选装不同的deb包
-Jetson 可装 aarch64
- 
-```
-# 这里因为海康的BUG，篡改了系统的路径，导致很多问题。请针对不同的系统架构，删除对应的包
-sudo rm /opt/MVS/lib/aarch64/libusb-1.0.so.0
+## 安装 MVS 驱动（Linux V3.0.1）
+### 对于 x86 平台
+```bash
+# 下载驱动包并安装
+wget -c https://file.emnavi.tech/common_tools/Hikcamera/MVS-3.0.1_x86_64_20241128.deb
+sudo dpkg -i MVS-3.0.1_x86_64_20241128.deb
 
-# 或者
+# 这里因为海康的BUG，篡改了系统的路径，导致很多问题，请删除：
 sudo rm /opt/MVS/lib/32/libusb-1.0.so.0
 sudo rm /opt/MVS/lib/64/libusb-1.0.so.0
 ```
 
+### 对于 arm 平台
 ```bash
-# 下载并编译本项目
+# 下载驱动包并安装
+wget -c https://file.emnavi.tech/common_tools/Hikcamera/MVS-3.0.1_aarch64_20241128.deb
+sudo dpkg -i MVS-3.0.1_x86_64_20241128.deb
+
+# 这里因为海康的BUG，篡改了系统的路径，导致很多问题，请删除：
+sudo rm /opt/MVS/lib/aarch64/libusb-1.0.so.0
+```
+
+## 编译本项目
+```bash
 mkdir -p ~/hikrobotics_camera_ws/src
 cd ~/hikrobotics_camera_ws
 git clone https://github.com/emNavi/hik-camera-ros-driver.git
@@ -35,10 +45,14 @@ catkin_make
 
 ```bash
 source ./devel/setup.bash
+# 启动相机
 roslaunch hik_camera_driver camera.launch
+
+# 动态调整参数
+rosrun rqt_reconfigure rqt_reconfigure
 ```
 
-## Params 说明
+## 参数说明
 
 ```yaml
 # 相机名称
